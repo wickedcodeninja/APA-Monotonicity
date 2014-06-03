@@ -16,6 +16,4 @@ transfer_gk :: Ord k => Framework s (Set k)
                   -> (Lab -> Set k) -- gen
                   -> (Lab -> Set k) -- kill
                   -> Lab -> (Set k -> Set k -> Set k)
-transfer_gk fw gen kill = \lab _ q ->  
-  let join = f_join fw
-  in (q \\ kill lab) `join` gen lab 
+transfer_gk fw gen kill = \lab _ q -> (q \\ kill lab) `union` gen lab 

@@ -76,11 +76,14 @@ import qualified Framework.Analysis.Context as Context
 
     
 main =
-  let k                 = 0                                 -- Length of Call Strings
-      driver            = Context.addContext k CP.driver    -- Change CP to one \in {AE, CP, LV, RD, VB}   
-      program           = Examples.propagation2             -- Choose test programs \in {propagation1, propagation2}             
-      framework         = createFramework driver program    --   -> propagation1 has a call to a function with a while loop which always exits with u == 30 
-      (open, closed)    = Analysis.runFramework $ framework --   -> propagation2 has a function which is called twice. Enabling call string context prevents poisoning between the calls. 
+  let k                 = 1                     -- Length of Call Strings
+      driver            = CP.driver             -- Change CP to one \in {AE, CP, LV, RD, VB} 
+      program           = Examples.cp2          -- Choose test programs \in {cp1, cp2, ae1}             
+                                                --   -> propagation1 has a call to a function with a while loop which always exits with u == 30 
+                                                --   -> propagation2 has a function which is called twice. Enabling call string context prevents poisoning between the calls. 
+      liftedDriver      = Context.addContext k driver
+      framework         = createFramework liftedDriver program  
+      (open, closed)    = Analysis.runFramework $ framework     
       
-  in putStrLn $ showResults driver closed
+  in putStrLn $ showResults liftedDriver closed
 

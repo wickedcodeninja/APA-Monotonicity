@@ -29,21 +29,41 @@ import Data.Set hiding ( map, foldr )
 driver :: Package (Set AExp)
 driver = Package {
   createFramework = \p ->
-    let kill l =
+    let bottom = f_bottom fw
+        kill l =
           case lookupBlock fw l of
             BlockAssign _ x _ -> unionMap (\t -> if x `member` fv t then singleton t else empty) $ aexp fw
             BlockSkip   _     -> empty
             BlockCond   _ b   -> empty
             BlockProc   _     -> empty
-            BlockCall   _ _ decls -> error "AE: procedure calls not handled yet"
+            BlockCall edge@(l_c, l_r) _ decls -> 
+              let declMapping = map (\(Decl ty dst, src) -> (ty, dst, src) ) $ getIntercall fw edge 
+                  transfer | l == l_c = \(t, x, a) -> union $
+                              case t of
+                                VarTy    -> unionMap (\t -> if x `member` fv t then singleton t else empty) $ aexp a
+                                ReturnTy -> Data.Set.empty
+                            | l == l_r = \(t, a, x) -> union $
+                              case (t, x) of
+                                (ReturnTy, Var r) -> unionMap (\t -> if r `member` fv t then singleton t else empty) $ aexp (Var a)
+                                (VarTy   , _    ) -> Data.Set.empty
+              in foldr transfer Data.Set.empty declMapping
         gen l =
           case lookupBlock fw l of
             BlockAssign _ x a -> unionMap (\t -> if not (x `member` fv t) then singleton t else empty) $ aexp a
             BlockSkip   _     -> empty
             BlockCond   _ b   -> aexp b
             BlockProc   _     -> empty
-            BlockCall   _ _ decls -> error "AE: procedure calls not handled yet"
-            
+            BlockCall edge@(l_c, l_r) _ decls -> 
+              let declMapping = map (\(Decl ty dst, src) -> (ty, dst, src) ) $ getIntercall fw edge 
+                  transfer | l == l_c = \(t, x, a) -> union $
+                              case t of
+                                VarTy    -> unionMap (\t -> if not (x `member` fv t) then singleton t else empty) $ aexp a
+                                ReturnTy -> Data.Set.empty
+                            | l == l_r = \(t, a, x) -> union $
+                              case (t, x) of
+                                (ReturnTy, Var r) -> unionMap (\t -> if not (r `member` fv t) then singleton t else empty) $ aexp (Var a)
+                                (VarTy   , _    ) -> Data.Set.empty
+              in foldr transfer Data.Set.empty declMapping
         fw = Framework {
           f_join     = intersection,
           f_bottom   = aexp fw,
@@ -58,3 +78,15 @@ driver = Package {
     in fw,      
   showAnalysis = \m -> "Available Expressions: " ++ show m
 }
+
+--TODO: share with CP
+
+-- |For (l_c, l_r) function call, determine how call arguments are mapped to the
+-- |corresponding function parameters
+getIntercall :: Framework Summary k -> (Lab, Lab) -> [(Decl, AExp)]
+getIntercall fw edge@(l_c, l_r) = 
+  let reduced = Data.Set.filter (\(c, _, _, r, _) -> l_c == c && l_r == r) $ interflow' fw
+  in case toList reduced of
+          []                  -> error $ "getIntercall: no interflow available for call " ++ show edge 
+          (_, _, _, _, r) : _ -> r
+          
