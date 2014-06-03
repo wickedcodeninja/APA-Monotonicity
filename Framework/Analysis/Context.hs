@@ -19,6 +19,8 @@ import Framework.While.Language
 import qualified Data.Map
 import qualified Data.Set
 
+import Debug.Trace
+
 import Prelude hiding ( init )
 import Data.Set hiding ( map, foldr )
   
@@ -72,7 +74,9 @@ addContext k lp =
                                                               [v] -> v 
                                                               _   -> error $ "wtf"
                                         t : r -> if t == l_c 
-                                                    then if length r < k 
+                                                    then if -- length r == k - 1 => still truncated
+                                                            -- length r == k - 2 => no truncation
+                                                               length r <  k - 1
                                                             then f_transfer legacy l_c bottom (q $* r) -- not truncated
                                                             else -- |Context trunctation is not injective,
                                                                  -- |Join over all context that might have
@@ -80,7 +84,7 @@ addContext k lp =
                                                                  let trans pfix = f_transfer legacy l_c bottom (q $* pfix) -- take sup over 
                                                                      pfixList = toList $ findTracesWithPrefix r            -- all contexts
                                                                  in foldr join bottom . map trans $ pfixList               -- with this prefix
-                                                    else bottom  -- NOTE: I'm not totally sure this case can/should occur.
+                                                    else bottom
                           else
                       if l == l_r                         -- f_l^(L, L')[d] =  f_l(L d, L' (l_c : d) )
                           then f_transfer legacy l_r (p $* d) (q $* take k (l_c : d) )      

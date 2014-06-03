@@ -81,11 +81,11 @@ import qualified Framework.Analysis.Context as Context
     
  
 main =
-  let k                 = 0                                 
+  let k                 = 1                                
       driver            = Context.addContext k CP.driver         
-      program           = Examples.test            
+      program           = Examples.propagation            
       framework         = createFramework driver program
       (open, closed)    = Analysis.runFramework $ framework 
       
-  in putStrLn $ showResults driver open
+  in putStrLn $ showResults driver closed
 
