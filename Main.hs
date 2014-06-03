@@ -48,7 +48,19 @@ import qualified Framework.Analysis.VB as VB
 import qualified Framework.Analysis.CP as CP
 
 import qualified Framework.Analysis.Context as Context
- 
+
+-- ----------------------------------------------------------------------------------------
+-- |What's there, what isn't:
+-- | - Lattice Embelishment by lifting a given lattice to one having call stack context
+-- | - Fully Arithmetic Expression Analysis
+-- | - Fully Implemented Constant Propagation Analysis
+-- | - User interface to facilitate debugging
+-- |    - Change call stack depth, selected analysis and test program on the fly
+-- |    - Query analysis results per labeled program point 
+-- | - Third analysis is missing, sorry
+-- | - Everything else should be fully implemented and, to my knowledge, mostly bug-free
+-- |
+-- |
 -- |Overview:
 -- |  Framework.hs: This defines the main interface that analysis instances should 
 -- |    implement.
@@ -71,7 +83,20 @@ import qualified Framework.Analysis.Context as Context
 -- |
 -- |  Examples.hs: contains the pre-written programs `propagation1` and `propagation2` 
 -- |               which show constant propagation.
-
+-- |
+-- |  Main.hs (this file): Main entry point. Start the program via main and use the menu
+-- |                       to do one of the following:
+-- |                         1). Display settings  -- Show current configuration.
+-- |                         2). Set program       -- Select which program to load.
+-- |                         3). Set stack depth   -- Change call stack depth (default 0).
+-- |                         4). Set analysis      -- Change analysis (only CP and AE are functional, default CP).
+-- |                         5). Show program      -- Pretty print the currently selected program (includes labels).
+-- |                         6). Show results      -- Show the results of the analysis. Results can be queried per labeled program point. 
+-- |  The example "Constant Propagation Example 1" can be used to test how constants are propagated
+-- |  through loops and function calls.
+-- |  The example "Constant Propagation Example 2" can be used to test call stack contexts by
+-- |  having (for example) the function 'testA' called twice with different parameters. Increasing
+-- |  the depth to something > 0 each call to the function it's own context.
  
 exampleList :: [(Program Lab, String, String)]
 exampleList =
@@ -206,8 +231,8 @@ displayProgram callback =
   do config <- get
      let prog = currentProgram config
      case prog of
-          Just program -> do lift $ putStrLn $ "Current program AST:\n"
-                             lift $ putStrLn $ show prog ++ "\n"
+          Just (program, desc) -> do lift $ putStrLn $ "Current program AST:\n"
+                                     lift $ putStrLn $ show program ++ "\n"
           Nothing -> lift $ putStrLn $ "Error: no program loaded."
      callback
   

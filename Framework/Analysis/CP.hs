@@ -1,4 +1,4 @@
--- |(C) Wout Elsinghorst 2013
+-- |(C) Wout Elsinghorst 2014
 
 module Framework.Analysis.CP (
   driver,

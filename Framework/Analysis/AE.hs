@@ -1,4 +1,4 @@
--- |(C) Wout Elsinghorst 2013
+-- |(C) Wout Elsinghorst 2014
 
 {-# LANGUAGE FlexibleInstances #-}
 
@@ -24,7 +24,7 @@ import qualified Data.Set
 
 import Prelude hiding ( init )
 import Data.Set hiding ( map, foldr )
-  
+import Data.List hiding ( init, union )
 
 driver :: Package (Set AExp)
 driver = Package {
@@ -76,7 +76,7 @@ driver = Package {
           f_summary  = createSummary p
          } 
     in fw,      
-  showResult = \m -> "Available Expressions: " ++ show m
+  showResult = \m -> "  " ++ concat (intersperse "\n  " . map show $ toList $ m) ++ "\n"
 }
 
 --TODO: share with CP
