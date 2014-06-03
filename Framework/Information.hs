@@ -113,7 +113,7 @@ instance Information (Statement Lab) where
     Assign _ _ _       -> empty
     Skip   _           -> empty
     IfThenElse l c a b -> edges a `union` edges b `union` fromList [(l, init a), (l, init b)]
-    While      l c a   -> edges a `union` singleton (l, init a)
+    While      l c a   -> edges a `union` singleton (l, init a) `union` Data.Set.map (\l' -> (l', l)) (final a)
     Call (l_c, l_r) nm xs -> empty -- The interflow edges (l_c; l_e) and (l_x, l_r )
                                    -- are added in `createSummary` where the needed
                                    -- information is available.

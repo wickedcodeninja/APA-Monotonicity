@@ -59,12 +59,10 @@ import qualified Framework.Analysis.Context as Context
 -- |  Framework.Analysis.{CP, AE, LV, RD, VB}: these modules contain various predefined
 -- |    analysis'. Only CP is currently fully implemented.
 -- |  Framework.Analysis.Context: the addContext method enhances an existing framework
--- |    with bounded callstring history. The implementation should be complete,
--- |    but some bug is preventing it from being sound.
+-- |    with bounded callstring history.
 -- |
--- |  Examples.hs: contains the pre-written programs `random`, `fac` and `fib`. The
--- |    `random` program is good for testing CP while the `fib` program is good for 
--- |    checking callstrings. 
+-- |  Examples.hs: contains the pre-written programs `propagation1` and `propagation2` 
+-- |               which show constant propagation.
 
  
  
@@ -76,16 +74,13 @@ import qualified Framework.Analysis.Context as Context
 -- |Unfortunately, no other analysis besides CP are currently fully 
 -- |implemented.
 
--- |Uncomment the `Context.addContext k` part to embellish the selected framework.
--- |Unfortunately, this gives incorrect results. 
     
- 
 main =
-  let k                 = 1                                
-      driver            = Context.addContext k CP.driver         
-      program           = Examples.propagation            
-      framework         = createFramework driver program
-      (open, closed)    = Analysis.runFramework $ framework 
+  let k                 = 0                                 -- Length of Call Strings
+      driver            = Context.addContext k CP.driver    -- Change CP to one \in {AE, CP, LV, RD, VB}   
+      program           = Examples.propagation2             -- Choose test programs \in {propagation1, propagation2}             
+      framework         = createFramework driver program    --   -> propagation1 has a call to a function with a while loop which always exits with u == 30 
+      (open, closed)    = Analysis.runFramework $ framework --   -> propagation2 has a function which is called twice. Enabling call string context prevents poisoning between the calls. 
       
   in putStrLn $ showResults driver closed
 
