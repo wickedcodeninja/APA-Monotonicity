@@ -28,7 +28,7 @@ type Analysis r = Map Lab r
 
 data Package r = Package {
     createFramework :: Program Lab -> Framework Summary r,
-    showAnalysis :: r -> String
+    showResult :: r -> String
   }
 
 
@@ -93,6 +93,6 @@ runFramework fw =
   in (r, Data.Map.mapWithKey (\l -> f_transfer fw l bottom) r) 
 
 showResults :: Package r -> Analysis r -> String
-showResults pkg = foldr (\(k, a) xs -> "label = " ++ show k ++ "\n\n" ++ showAnalysis pkg a ++ "\n *** \n" ++ xs) [] . Data.Map.toList 
+showResults pkg = foldr (\(k, a) xs -> "label = " ++ show k ++ "\n\n" ++ showResult pkg a ++ "\n *** \n" ++ xs) [] . Data.Map.toList 
 
   

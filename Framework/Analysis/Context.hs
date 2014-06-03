@@ -106,8 +106,8 @@ addContext k lp =
                 } 
           in fw,
             
-        showAnalysis = \m -> 
-          foldr (\(k, a) xs -> "trace = " ++ show k ++ "\n" ++ showAnalysis lp a ++ xs) [] . Data.Map.toList $ m
+        showResult = \m -> 
+          foldr (\(k, a) xs -> "Context = " ++ show k ++ " {\n" ++ showResult lp a ++ "}\n" ++ xs) [] . Data.Map.toList $ m
        }
   in pkg
   

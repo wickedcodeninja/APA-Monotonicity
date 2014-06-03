@@ -56,7 +56,7 @@ driver = Package {
           f_summary  = createSummary p
         } 
     in fw,       
-  showAnalysis = \m -> "Reaching Definitions: " ++ show m
+  showResult = show
 }
 collectAssigns :: (Eq r) => Framework Summary r -> Set (Block Lab)
 collectAssigns fw = unionMap matcher $ blocks fw where

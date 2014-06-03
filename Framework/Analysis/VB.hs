@@ -54,7 +54,7 @@ driver = Package {
           f_summary  = createSummary p
         } 
     in fw,
-  showAnalysis = \m -> "Very Busy Expressions: " ++ show m
+  showResult = show
 }
 
 flipFlow :: Set (Lab, Lab) -> Set (Lab, Lab)

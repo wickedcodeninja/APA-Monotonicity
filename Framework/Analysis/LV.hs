@@ -53,7 +53,7 @@ driver = Package {
           f_summary  = createSummary p
         } 
     in fw,
-  showAnalysis = \m -> "Live Variables: " ++ show m
+  showResult = show
 }
 flipFlow :: Set (Lab, Lab) -> Set (Lab, Lab)
 flipFlow = Data.Set.map (\(a, b) -> (b, a))    

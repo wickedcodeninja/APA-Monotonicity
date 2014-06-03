@@ -105,7 +105,7 @@ driver = Package {
           f_summary  = createSummary s
         } 
     in fw,  
-  showAnalysis = \m -> "Constant Propagation " ++ showFunctionMap m
+  showResult = showFunctionMap
 }
   
 -- |For (l_r, l_c) function call, determine how call arguments are mapped to the

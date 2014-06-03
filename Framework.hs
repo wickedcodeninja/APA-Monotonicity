@@ -80,5 +80,5 @@ lookupBlock fw l =
 
 -- |Interpret a `Map k a` as a function `k -> a` on a finite domain. Show.
 showFunctionMap :: (Show a, Show k, Ord k) => Data.Map.Map k a -> String
-showFunctionMap m = "{\n" ++ (foldr (\(k, a) xs -> "  " ++ show k ++ "\t-> " ++ show a ++ "\n" ++ xs) [] . Data.Map.toList $ m) ++ "}\n"
+showFunctionMap m = (foldr (\(k, a) xs -> "  " ++ show k ++ "\t-> " ++ show a ++ "\n" ++ xs) [] . Data.Map.toList $ m)
     

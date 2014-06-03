@@ -76,7 +76,7 @@ driver = Package {
           f_summary  = createSummary p
          } 
     in fw,      
-  showAnalysis = \m -> "Available Expressions: " ++ show m
+  showResult = \m -> "Available Expressions: " ++ show m
 }
 
 --TODO: share with CP
