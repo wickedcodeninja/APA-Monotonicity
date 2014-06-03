@@ -103,6 +103,9 @@ exampleList =
   [ (Examples.cp1, "cp1", "Constant Propagation Example 1")
   , (Examples.cp2, "cp2", "Constant Propagation Example 2")
   , (Examples.ae1, "ae1", "Arithmetic Expression Example 1")
+  , (Examples.random, "random", "Random Statements")
+  , (Examples.fac, "fac", "Faculty Function")
+  , (Examples.fib, "fib", "Fibonacci Function")
   ]
  
 data Config = Config { stackDepth :: Int, currentProgram :: Maybe (Program Lab, String), currentAnalysis :: Maybe (Closed Package, String), currentResult :: Maybe Result }

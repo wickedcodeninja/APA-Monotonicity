@@ -117,9 +117,9 @@ callStatement :: Parser Statement'
 callStatement =
   do reserved "call"
      name <- identifier
-     reserved "["
+     reserved "("
      argList <- sepBy aExpression comma
-     reserved "]"
+     reserved ")"
      return $ call name argList
  
 whileStatement :: Parser Statement'
@@ -157,9 +157,9 @@ function :: Parser Function'
 function =
   do reserved "proc"
      name <- identifier
-     reserved "["
+     reserved "("
      argList <- sepBy decl comma
-     reserved "]"
+     reserved ")"
      
      reserved "{"
      stmt <- statement
