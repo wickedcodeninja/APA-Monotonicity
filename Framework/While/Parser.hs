@@ -81,7 +81,7 @@ comma      = Token.comma      lexer
 
 statement :: Parser Statement'
 statement =  parens statement
-         <|> sequenceOfStatement
+         <|> (sequenceOfStatement)
  
 statement' :: Parser Statement'
 statement' = (  ifStatement
@@ -95,7 +95,7 @@ statement' = (  ifStatement
              )
  
 sequenceOfStatement =
-   do list <- (sepBy1 statement' semi)
+   do list <- (endBy1 statement' semi)
       -- If there's only one statement return it without using Seq.
       return $ if length list == 1 then head list else Seq list
       
