@@ -110,9 +110,9 @@ chooseProgram =
      
      validator
 
-data Closed m = forall r . Eq r => Closed { open :: m r }
+data Closed m = forall r . (Eq r, Show r) => Closed { open :: m r }
      
-data Result = forall r . Eq r => Result { result :: (Package r, Analysis r) } 
+data Result = forall r . (Eq r, Show r) => Result { result :: (Package r, Analysis r) } 
      
 analysisList :: [(Closed Package, String, String)]
 analysisList =
@@ -175,7 +175,7 @@ displaySettings =
      case currentProgram config of
           Just (_, desc) -> lift $ putStrLn $ desc
           Nothing        -> lift $ putStrLn $ "<no program set>"
-     
+     lift $ putStrLn $ ""
      
      
 runAnalysis :: Interface (Maybe Result)
@@ -201,23 +201,34 @@ runAnalysis =
           Nothing -> do lift $ putStrLn $ "Error: one or more settings not set."
                         return $ Nothing
 
-     
+displayProgram :: Interface () -> Interface ()
+displayProgram callback =
+  do config <- get
+     let prog = currentProgram config
+     case prog of
+          Just program -> do lift $ putStrLn $ "Current program AST:\n"
+                             lift $ putStrLn $ show prog ++ "\n"
+          Nothing -> lift $ putStrLn $ "Error: no program loaded."
+     callback
+  
 displayResults :: Interface ()
 displayResults =
   do let validator :: Result -> Interface ()
          validator result@(Result (driver, stuff)) = 
-           do lift $ putStrLn $ "Which label do you want to show? (press r to return to main menu)"
+           do lift $ putStrLn $ "Which label do you want to show? (press r to return to main menu or s to show current program)"
               lift $ putStr $ ">> "
               lift $ hFlush stdout
               input <- lift getLine
               case readMaybe input :: Maybe Int of
-                    Just n  -> do case Data.Map.lookup n stuff of
-                                       Just v -> do lift $ putStrLn $ showResult driver v
-                                                    validator result
-                                       Nothing -> do lift $ putStrLn $ "Error: invalid label."
-                                                     validator result
+                    Just n  -> case Data.Map.lookup n stuff of
+                                    Just v  -> do lift $ putStrLn $ "Analysis result for label " ++ show n ++ ":\n"
+                                                  lift $ putStrLn $ showResult driver v
+                                                  validator result
+                                    Nothing -> do lift $ putStrLn $ "Error: invalid label."
+                                                  validator result
                     Nothing -> case input of
                                     "r"  -> userInterface 
+                                    "s"  -> displayProgram (validator result)
                                     _    -> do lift $ putStrLn $ "Error: invalid option."
                                                validator result
   
@@ -237,9 +248,10 @@ invalidator m = do _ <- m
 mainMenu :: [(Interface (), String)]
 mainMenu =
   [ (do () <- displaySettings;              return (), "Display settings")
+  , (do () <- invalidator chooseProgram;    return (), "Set program")
   , (do () <- invalidator chooseStackDepth; return (), "Set stack depth")
   , (do () <- invalidator chooseAnalysis;   return (), "Set analysis")
-  , (do () <- invalidator chooseProgram;    return (), "Set program")
+  , (do () <- displayProgram userInterface; return (), "Show program")
   , (do () <- displayResults;               return (), "Show results")
   ]
      
@@ -266,13 +278,23 @@ userInterface =
                                            validator
      validator
 
+safeIndex :: Int -> [a] -> Maybe a
+safeIndex 0 [] = Nothing
+safeIndex 0 (x:_) = Just x
+safeIndex k (x:xs) = safeIndex (k-1) xs
+     
 defaultConfig :: Config
-defaultConfig = Config { stackDepth = 0, currentProgram = Just (Examples.cp1, "default"), currentAnalysis = Just (Closed CP.driver, "default"), currentResult = Nothing }
+defaultConfig = 
+  Config { 
+    stackDepth = 0, 
+    currentProgram = safeIndex 1 . map (\(p, _, desc) -> (p, desc)) $ exampleList,
+    currentAnalysis = safeIndex 0 . map (\(p, _, desc) -> (p, desc)) $ analysisList,
+    currentResult = Nothing
+  }
      
 main :: IO ()
 main =
-  do let --config = Config { stackDepth = 0, currentProgram = Nothing, currentAnalysis = Nothing, currentResult = Nothing }
-         config = defaultConfig
+  do let config = defaultConfig
      _ <- runStateT userInterface config
      return ()
  
