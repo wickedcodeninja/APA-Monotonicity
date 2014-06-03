@@ -79,12 +79,13 @@ import qualified Framework.Analysis.Context as Context
 -- |Uncomment the `Context.addContext k` part to embellish the selected framework.
 -- |Unfortunately, this gives incorrect results. 
     
+ 
 main =
-  let k                 = 0                                      -- The k = 0 case doesn't reduce to running the anlysis without any context :(
-      driver            = {- Context.addContext k -} CP.driver   -- Uncomment to add callstring history. Unfortunately,
-      program           = Examples.random                        --   this doesn't work quite as suspected (running with
-      framework         = createFramework driver program         --   callstring length k = 0 doesn't reduce to the
-      (open, closed)    = Analysis.runFramework $ framework      --   unembellished case)
+  let k                 = 0                                 
+      driver            = Context.addContext k CP.driver         
+      program           = Examples.test            
+      framework         = createFramework driver program
+      (open, closed)    = Analysis.runFramework $ framework 
       
   in putStrLn $ showResults driver open
 

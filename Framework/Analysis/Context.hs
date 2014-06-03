@@ -60,29 +60,33 @@ addContext k lp =
                     BlockAssign _ _ _ -> transfer_legacy l -- |Lift the original transfer functions to
                     BlockSkip _       -> transfer_legacy l -- |to the context world
                     BlockCond _ _     -> transfer_legacy l
-                    
+
                     -- Inter-procedural fragment
-                    BlockProc _       -> const id
-                    BlockCall edge@(l_c, l_r) nm _ -> \p q -> flip Data.Map.fromSet traces $
+                    BlockProc _       -> transfer_legacy l -- const id
+                    BlockCall edge@(l_c, l_r) nm _ -> \p q -> flip Data.Map.fromSet traces $ \d ->
                       if l == l_c                          -- f_l^(L)[d] = union { f_{l_c}(L[d']) | d = l_c : d' }
-                          then \d' -> case d' of           -- 
-                                        []    -> bottom
-                                        t : d -> if t == l_c 
-                                                    then if length d < k 
-                                                            then f_transfer legacy l_c bottom (q $* d) -- not truncated
+                          then        case d of           -- 
+                                        []    -> if k /= 0
+                                                    then bottom -- Empty sum
+                                                    else case Data.Map.elems $ transfer_legacy l p q of
+                                                              [v] -> v 
+                                                              _   -> error $ "wtf"
+                                        t : r -> if t == l_c 
+                                                    then if length r < k 
+                                                            then f_transfer legacy l_c bottom (q $* r) -- not truncated
                                                             else -- |Context trunctation is not injective,
                                                                  -- |Join over all context that might have
                                                                  -- |truncated to the current context
                                                                  let trans pfix = f_transfer legacy l_c bottom (q $* pfix) -- take sup over 
-                                                                     pfixList = toList $ findTracesWithPrefix d            -- all contexts
+                                                                     pfixList = toList $ findTracesWithPrefix r            -- all contexts
                                                                  in foldr join bottom . map trans $ pfixList               -- with this prefix
                                                     else bottom  -- NOTE: I'm not totally sure this case can/should occur.
                           else
                       if l == l_r                         -- f_l^(L, L')[d] =  f_l(L d, L' (l_c : d) )
-                          then \d -> f_transfer legacy l_r (p $* d) (q $* take k (l_c : d) )      
+                          then f_transfer legacy l_r (p $* d) (q $* take k (l_c : d) )      
                       
                           else error "contextCallStack: inconsistent transfer"
-                        
+                            
         
               fw = Framework {
                   f_join     = Data.Map.unionWith join,                               -- Lift join pointwise 
@@ -91,6 +95,7 @@ addContext k lp =
                                                                                       -- \t -> iota    if t == []
                   f_extreme  = f_extreme legacy,
                   f_flow     = f_flow legacy,
+                  f_interflow = f_interflow legacy,
                   f_transfer = transfer, 
                 
                   f_summary  = f_summary legacy
@@ -106,7 +111,7 @@ addContext k lp =
 -- |Calculate all traces up to length n for the program associated to fw
 collectTraces :: Framework Summary r -> Int -> Set [Lab]
 collectTraces fw n  = 
-  let Program fs s = program fw
+  let (Program fs s) = program fw
       
       iflow = interflow fw
       
@@ -132,7 +137,7 @@ collectTraces fw n  =
       -- |For a given function call, find the callee 
       matchProc :: DelayedCall Lab -> Function Lab
       matchProc (DelayedCall (l_c, l_r) _ _) = 
-        let reduced = unionMap (\(c, e, x, r, _) -> if c == l_c && r == l_r then singleton (e, x) else empty) $ iflow
+        let reduced = unionMap (\(c, e, x, r) -> if c == l_c && r == l_r then singleton (e, x) else empty) $ iflow
         in case elems reduced of
              edge:_ -> case Prelude.filter (\(Function t _ _ _) -> t == edge) fs of
                              f:_ -> f

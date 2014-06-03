@@ -2,9 +2,7 @@
 
 module Framework (
   Framework (..),
-  E (..),
-  F (..),
-  interflow,
+  interflow, interflow', flow,
   program,
   lookupBlock,
   showFunctionMap
@@ -23,9 +21,6 @@ import Prelude hiding ( init )
 import Data.Set hiding ( foldr )
 import qualified Data.Map
 
-type E = Set Lab
-type F = Set (Lab, Lab)
-
 -- |This datatype describes the framework. The transfer function is
 -- |a binary function. The first parameter is used when transfering the
 -- |r part of a (l_c, l_r) call, but it is otherwise ignored. 
@@ -34,8 +29,9 @@ data Framework s l = Framework {
     f_join     :: l -> l -> l,
     f_bottom   :: l,
     f_iota     :: l,
-    f_extreme  :: E,                    
-    f_flow     :: F,                    
+    f_extreme  :: Set Lab,                    
+    f_flow     :: Set (Lab, Lab),
+    f_interflow :: Set (Lab, Lab, Lab, Lab),
     f_transfer :: Lab -> (l -> l -> l), 
     f_summary  :: s
   }
@@ -64,8 +60,14 @@ program = g_program . f_summary
 
 -- | Interflows consisting of (l_c, l_e, l_x, l_r) together with
 -- | an argument -> parameter mapping.
-interflow :: Framework Summary k -> Set (Lab, Lab, Lab, Lab, [(Decl, AExp)])
-interflow = g_interflow . f_summary
+interflow' :: Framework Summary k -> Set (Lab, Lab, Lab, Lab, [(Decl, AExp)])
+interflow' = g_interflow . f_summary
+
+interflow :: Framework Summary k -> Set (Lab, Lab, Lab, Lab)
+interflow = Data.Set.map (\(a, b, c, d, _) -> (a, b, c, d)) . interflow'
+
+flow :: Framework Summary k -> Set (Lab, Lab)
+flow = g_flow . f_summary
 
 
 -- |Find the block matching the label. In the case of Proc or Call, 

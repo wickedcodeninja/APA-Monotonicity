@@ -49,7 +49,8 @@ driver = Package {
           f_bottom   = aexp fw,
           f_iota     = empty,
           f_extreme  = singleton (init fw),
-          f_flow     = edges fw,
+          f_flow     = flow fw,
+          f_interflow = interflow fw,
           f_transfer = transfer_gk fw gen kill,
           
           f_summary  = createSummary p

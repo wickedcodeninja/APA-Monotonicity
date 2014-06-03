@@ -49,7 +49,8 @@ driver = Package {
           f_bottom   = empty,
           f_iota     = Data.Set.map (\v -> (v, Nothing)) $ fv p,
           f_extreme  = singleton (init fw),
-          f_flow     = edges fw,
+          f_flow     = flow fw,
+          f_interflow = interflow fw,
           f_transfer = transfer_gk fw gen kill,
           
           f_summary  = createSummary p

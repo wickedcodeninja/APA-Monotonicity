@@ -47,7 +47,8 @@ driver = Package {
           f_bottom   = aexp fw,
           f_iota     = empty,
           f_extreme  = final fw,
-          f_flow     = flipFlow (edges fw),
+          f_flow     = flipFlow (flow fw),
+          f_interflow = interflow fw,
           f_transfer = transfer_gk fw gen kill,
           
           f_summary  = createSummary p

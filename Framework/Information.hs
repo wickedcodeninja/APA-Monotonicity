@@ -64,6 +64,7 @@ instance Information (Program Lab) where
   final (Program _ s)     = final s
   
   edges (Program fs s)    = (unions $ map edges    fs) `union` edges s
+
   vertices (Program fs s) = (unions $ map vertices fs) `union` vertices s  
   
   blocks (Program fs s)   = (unions $ map blocks   fs) `union` blocks s

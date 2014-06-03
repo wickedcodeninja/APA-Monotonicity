@@ -68,12 +68,12 @@ driver = Package {
                                                                             Add -> p + q
                                                                             Sub -> p - q
                                                                             Mul -> p * q
-                                  (ZFinite _,         t) -> t
-                                  (t        , ZFinite _) -> t
+                                  _                      -> z_top
+
         transfer_cp l = case lookupBlock fw l of
                           BlockAssign _ x a -> \_ q -> if q == bottom 
                                                           then bottom
-                                                          else Data.Map.update (\_ -> Just $ acp a q) x q
+                                                          else Data.Map.insert x (acp a q) q
                           BlockSkip _       -> const id
                           BlockCond _ _     -> const id
                           
@@ -82,11 +82,11 @@ driver = Package {
                             let declMapping = map (\(Decl ty dst, src) -> (ty, dst, src) ) $ getIntercall fw edge 
                                 transfer | l == l_c = \(t, x, a) q ->
                                             case t of
-                                              VarTy    -> Data.Map.update (\_ -> Just $ acp a q) x q
+                                              VarTy    -> Data.Map.insert x (acp a q) q
                                               ReturnTy -> q
-                                        | l == l_r = \(t, a, x) q -> 
+                                         | l == l_r = \(t, a, x) q -> 
                                             case (t, x) of
-                                              (ReturnTy, Var r) -> Data.Map.update (\_ -> Just $ acp (Var a) q) r q
+                                              (ReturnTy, Var r) -> Data.Map.insert r (acp (Var a) q) q
                                               (VarTy   , _    ) -> q
                             in if q == bottom
                                   then bottom
@@ -98,7 +98,8 @@ driver = Package {
           f_bottom   = Data.Map.fromSet (const z_bottom) var_star,
           f_iota     = Data.Map.fromSet (const z_top)    var_star,
           f_extreme  = singleton (init fw),
-          f_flow     = edges fw,
+          f_flow     = flow fw,
+          f_interflow = interflow fw,
           f_transfer = transfer_cp,
     
           f_summary  = createSummary s
@@ -111,7 +112,7 @@ driver = Package {
 -- |corresponding function parameters
 getIntercall :: Framework Summary k -> (Lab, Lab) -> [(Decl, AExp)]
 getIntercall fw edge@(l_c, l_r) = 
-  let reduced = Data.Set.filter (\(c, _, _, r, xs) -> l_c == c && l_r == r) $ interflow fw
+  let reduced = Data.Set.filter (\(c, _, _, r, _) -> l_c == c && l_r == r) $ interflow' fw
   in case toList reduced of
           []                  -> error $ "getIntercall: no interflow available for call " ++ show edge 
           (_, _, _, _, r) : _ -> r
